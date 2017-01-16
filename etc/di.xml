@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <virtualType name="SuttonSilver\CMSMenu\Model\ResourceModel\MenuItems\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+		<arguments>
+			<argument name="mainTable" xsi:type="string">cms_menuitems</argument>
+			<argument name="resourceModel" xsi:type="string">SuttonSilver\CMSMenu\Model\ResourceModel\MenuItems\Collection</argument>
+		</arguments>
+	</virtualType>
+	<type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+		<arguments>
+			<argument name="collections" xsi:type="array">
+				<item name="suttonsilver_cmsmenu_data_source" xsi:type="string">SuttonSilver\CMSMenu\Model\ResourceModel\MenuItems\Grid\Collection</item>
+			</argument>
+		</arguments>
+	</type>
+    <type name="Magento\Theme\Block\Html\Topmenu">
+        <plugin name="suttonsilver_cmsmenu_magento_theme_block_html_topmenu" type="SuttonSilver\CMSMenu\Plugin\Topmenu"/>
+    </type>
+</config>
