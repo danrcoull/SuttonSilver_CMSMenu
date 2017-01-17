@@ -10,32 +10,29 @@ namespace SuttonSilver\CMSMenu\Controller\Adminhtml;
  */
 abstract class MenuItems extends \Magento\Backend\App\Action
 {
+    const ADMIN_RESOURCE = 'SuttonSilver_CMSMenu::menu';
+
     protected function _initMenuItem($getRootInstead = false)
     {
         $menuId = (int)$this->getRequest()->getParam('id', false);
         $storeId = (int)$this->getRequest()->getParam('store');
         $menuItem = $this->_objectManager->create('SuttonSilver\CMSMenu\Model\MenuItems');
+
         $menuItem->setStoreId($storeId);
 
-        if ($menuId) {
+        if ($menuId && $menuId != 0) {
             $menuItem->load($menuId);
             if ($storeId) {
-                $rootId = 1;
-                if (!in_array($rootId, $menuItem->getPathIds())) {
-                    // load root category instead wrong one
-                    if ($getRootInstead) {
-                        $menuItem->load($rootId);
-                    } else {
-                        return false;
-                    }
+                if ($getRootInstead) {
+                    $menuItem->load(1);
+                } else {
+                    return false;
                 }
             }
         }
 
         $this->_objectManager->get('Magento\Framework\Registry')->register('menuitem', $menuItem);
         $this->_objectManager->get('Magento\Framework\Registry')->register('current_menuitem', $menuItem);
-        $this->_objectManager->get('Magento\Cms\Model\Wysiwyg\Config')
-            ->setStoreId($this->getRequest()->getParam('store'));
         return $menuItem;
     }
 }

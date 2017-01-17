@@ -10,6 +10,7 @@ use Magento\Backend\App\Action;
 use SuttonSilver\CMSMenu\Model\MenuItems;
 use Magento\Framework\App\Request\DataPersistorInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Store\Model\StoreManagerInterface;
 
 class Save extends \SuttonSilver\CMSMenu\Controller\Adminhtml\MenuItems
 {
@@ -31,20 +32,46 @@ class Save extends \SuttonSilver\CMSMenu\Controller\Adminhtml\MenuItems
     protected $dataPersistor;
 
     /**
-     * @param Action\Context $context
-     * @param PostDataProcessor $dataProcessor
-     * @param DataPersistorInterface $dataPersistor
+     * @var \Magento\Framework\Controller\Result\RawFactory
+     */
+    protected $resultRawFactory;
+
+    /**
+     * @var \Magento\Framework\Controller\Result\JsonFactory
+     */
+    protected $resultJsonFactory;
+
+    /**
+     * @var \Magento\Framework\View\LayoutFactory
+     */
+    protected $layoutFactory;
+
+    private $storeManager;
+
+    /**
+     * Constructor
+     *
+     * @param \Magento\Backend\App\Action\Context $context
+     * @param \Magento\Framework\Controller\Result\RawFactory $resultRawFactory
+     * @param \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
+     * @param \Magento\Framework\View\LayoutFactory $layoutFactory
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        DataPersistorInterface $dataPersistor,
-        Action\Context $context
+        \Magento\Backend\App\Action\Context $context,
+        \Magento\Framework\Controller\Result\RawFactory $resultRawFactory,
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
+        \Magento\Framework\View\LayoutFactory $layoutFactory,
+        StoreManagerInterface $storeManager
     ) {
-
-        $this->dataPersistor = $dataPersistor;
         parent::__construct($context);
+        $this->resultRawFactory = $resultRawFactory;
+        $this->resultJsonFactory = $resultJsonFactory;
+        $this->layoutFactory = $layoutFactory;
+        $this->storeManager = $storeManager;
     }
 
-    protected function getParentCategory($parentId, $storeId)
+    protected function getParentItem($parentId, $storeId)
     {
         if (!$parentId) {
             $parentId = 1;
@@ -70,35 +97,80 @@ class Save extends \SuttonSilver\CMSMenu\Controller\Adminhtml\MenuItems
 
         $data['general'] = $this->getRequest()->getPostValue();
         $menuItemData = $data['general'];
-
         $isNewMenuItem = !isset($menuItemData['suttonsilver_cmsmenu_menuitems_id']);
         $storeId = isset($menuItemData['store_id']) ? $menuItemData['store_id'] : null;
-        $store = $this->storeManager->getStore($storeId);
-        $this->storeManager->setCurrentStore($store->getCode());
         $parentId = isset($menuItemData['parent']) ? $menuItemData['parent'] : null;
         if ($menuItemData) {
+            $menuItem->addData($menuItemData);
             if ($isNewMenuItem) {
-                $parentCategory = $this->getParentCategory($parentId, $storeId);
-                $menuItem->setPath($parentCategory->getPath());
-                $menuItem->setParentId($parentCategory->getId());
+                $parentItem = $this->getParentItem($parentId, $storeId);
+                $menuItem->setPath($parentItem->getPath());
+                $menuItem->setParentId($parentItem->getId());
             }
         }
+
 
         try {
             $menuItem->save();
             $this->messageManager->addSuccessMessage(__('You saved the Menu Item.'));
-            $this->dataPersistor->clear('cmsmenu_menu');
-            if ($this->getRequest()->getParam('back')) {
-                return $resultRedirect->setPath('*/*/edit', ['suttonsilver_cmsmenu_menuitems_id' => $model->getId(), '_current' => true]);
-            }
-            return $resultRedirect->setPath('*/*/');
-        } catch (LocalizedException $e) {
+        } catch (\Magento\Framework\Exception\AlreadyExistsException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+            $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
+            $this->_getSession()->setMenuItemData($menuItemData);
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
+            $this->_getSession()->setMenuItemData($menuItemData);
         } catch (\Exception $e) {
-
-            $this->messageManager->addExceptionMessage($e, __('Something went wrong while saving the page.'));
+            $this->messageManager->addErrorMessage(__('Something went wrong while saving the menu item.'));
+            $this->_objectManager->get(\Psr\Log\LoggerInterface::class)->critical($e);
+            $this->_getSession()->setMenuItemData($menuItemData);
         }
 
-        return $resultRedirect->setPath('*/*/');
+        $hasError = (bool)$this->messageManager->getMessages()->getCountByType(
+            \Magento\Framework\Message\MessageInterface::TYPE_ERROR
+        );
+
+        if ($this->getRequest()->getPost('return_session_messages_only')) {
+            $menuItem->load($menuItem->getId());
+            // to obtain truncated category name
+            /** @var $block \Magento\Framework\View\Element\Messages */
+            $block = $this->layoutFactory->create()->getMessagesBlock();
+            $block->setMessages($this->messageManager->getMessages(true));
+
+            /** @var \Magento\Framework\Controller\Result\Json $resultJson */
+            $resultJson = $this->resultJsonFactory->create();
+            return $resultJson->setData(
+                [
+                    'messages' => $block->getGroupedHtml(),
+                    'error' => $hasError,
+                    'menuitem' => $menuItem->toArray(),
+                ]
+            );
+        }
+
+        $redirectParams = $this->getRedirectParams($isNewMenuItem, $hasError, $menuItem->getId(), $parentId, $storeId);
+
+        return $resultRedirect->setPath(
+            $redirectParams['path'],
+            $redirectParams['params']
+        );
+    }
+
+    protected function getRedirectParams($isNewCategory, $hasError, $menuId, $parentId, $storeId)
+    {
+        $params = ['_current' => true];
+        if ($storeId) {
+            $params['store'] = $storeId;
+        }
+        if ($isNewCategory && $hasError) {
+            $path = 'cmsmenu_menu/*/new';
+            $params['parent'] = $parentId;
+        } else {
+            $path = 'cmsmenu_menu/*/edit';
+            $params['id'] = $menuId;
+
+        }
+        return ['path' => $path, 'params' => $params];
     }
 }

@@ -31,7 +31,7 @@
             <argument name="class" xsi:type="string">SuttonSilver\CMSMenu\Ui\Component\Listing\DataProviders\Suttonsilver\Cmsmenu</argument>
             <argument name="name" xsi:type="string">suttonsilver_cmsmenu_data_source</argument>
             <argument name="primaryFieldName" xsi:type="string">suttonsilver_cmsmenu_menuitems_id</argument>
-            <argument name="requestFieldName" xsi:type="string">suttonsilver_cmsmenu_menuitems_id</argument>
+            <argument name="requestFieldName" xsi:type="string">id</argument>
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="submit_url" xsi:type="url" path="cmsmenu_menu/index/save"/>
@@ -54,15 +54,40 @@
             </item>
         </argument>
 
-        <!-- This field represents form id and is hidden -->
-        <field name="suttonsilver_cmsmenu_menuitems_id">
+        <field name="id">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="visible" xsi:type="boolean">false</item>
                     <item name="dataType" xsi:type="string">text</item>
-                    <item name="formElement" xsi:type="string">input</item>
+                    <item name="formElement" xsi:type="string">hidden</item>
                     <item name="source" xsi:type="string">cmsmenu</item>
-                    <item name="dataScope" xsi:type="string">suttonsilver_cmsmenu_menuitems_id</item>
+                </item>
+            </argument>
+        </field>
+
+        <field name="parent">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">hidden</item>
+                    <item name="source" xsi:type="string">cmsmenu</item>
+                </item>
+            </argument>
+        </field>
+        <field name="path">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">text</item>
+                    <item name="formElement" xsi:type="string">hidden</item>
+                    <item name="source" xsi:type="string">cmsmenu</item>
+                </item>
+            </argument>
+        </field>
+        <field name="store_id">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="dataType" xsi:type="string">number</item>
+                    <item name="formElement" xsi:type="string">hidden</item>
+                    <item name="source" xsi:type="string">cmsmenu</item>
                 </item>
             </argument>
         </field>
@@ -85,22 +110,7 @@
                 </item>
             </argument>
         </field>
-        <field name="store_id">
-            <argument name="data" xsi:type="array">
-                <item name="options" xsi:type="object">SuttonSilver\CMSMenu\Model\Attribute\Source\Store</item>
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">int</item>
-                    <item name="label" xsi:type="string" translate="true">Store View</item>
-                    <item name="formElement" xsi:type="string">multiselect</item>
-                    <item name="source" xsi:type="string">cmsmenu</item>
-                    <item name="dataScope" xsi:type="string">store_id</item>
-                    <item name="default" xsi:type="string">0</item>
-                    <item name="validation" xsi:type="array">
-                        <item name="required-entry" xsi:type="boolean">true</item>
-                    </item>
-                </item>
-            </argument>
-        </field>
+
         <field name="title">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
@@ -149,26 +159,6 @@
                     <item name="label" xsi:type="string" translate="true">Menu Item Slug</item>
                     <item name="validation" xsi:type="array">
                         <item name="required-entry" xsi:type="boolean">true</item>
-                    </item>
-                </item>
-            </argument>
-        </field>
-
-        <field name="parent">
-            <argument name="data" xsi:type="array">
-                <item name="options" xsi:type="object">SuttonSilver\CMSMenu\Model\Attribute\Source\MenuItems</item>
-                <item name="config" xsi:type="array">
-                    <item name="dataType" xsi:type="string">string</item>
-                    <item name="label" xsi:type="string" translate="true">Parent Item</item>
-                    <item name="formElement" xsi:type="string">select</item>
-                    <item name="source" xsi:type="string">cmsmenu</item>
-                    <item name="dataScope" xsi:type="string">parent</item>
-                    <item name="tooltip" xsi:type="array">
-                        <item name="link" xsi:type="string">#</item>
-                        <item name="description" xsi:type="string" translate="true">Hold the CTRL key to select multiple parents</item>
-                    </item>
-                    <item name="validation" xsi:type="array">
-                        <item name="required-entry" xsi:type="boolean">false</item>
                     </item>
                 </item>
             </argument>

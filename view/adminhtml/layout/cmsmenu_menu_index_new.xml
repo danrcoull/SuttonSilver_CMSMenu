@@ -1,6 +1,26 @@
 <?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="admin-2columns-left"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <update handle="suttonsilver_cmsmenu_index_edit"/>
-    <body/>
+    <update handle="styles"/>
+    <head>
+        <css src="jquery/fileUploader/css/jquery.fileupload-ui.css"/>
+        <link src="Magento_Catalog::js/edit-tree.js"/>
+    </head>
+    <update handle="editor"/>
+    <body>
+        <referenceContainer name="left" htmlTag="div" />
+        <referenceContainer name="page.main.actions">
+            <block class="Magento\Backend\Block\Store\Switcher" name="category.store.switcher" template="Magento_Backend::store/switcher.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="left">
+            <block class="SuttonSilver\CMSMenu\Block\Adminhtml\MenuItems\Tree" name="category.tree" template="tree.phtml"/>
+        </referenceContainer>
+        <referenceContainer name="content">
+            <uiComponent name="suttonsilver_cmsmenu_form"/>
+            <block class="SuttonSilver\CMSMenu\Block\Adminhtml\MenuItems\Edit" name="category.edit" template="edit.phtml" />
+        </referenceContainer>
+        <referenceBlock name="head.components">
+            <block class="Magento\Framework\View\Element\Js\Components" name="menuitems_page_head_components" template="Magento_Catalog::js/components.phtml"/>
+        </referenceBlock>
+    </body>
 </page>

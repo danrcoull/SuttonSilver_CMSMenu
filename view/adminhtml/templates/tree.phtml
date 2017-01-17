@@ -256,7 +256,7 @@
                 containerScroll: true,
                 selModel: new Ext.tree.CheckNodeMultiSelectionModel(),
                 rootVisible: true,
-                useAjax: <?php /* @escapeNotVerified */ echo $block->getUseAjax() ?>,
+                useAjax: false,
                 switchTreeUrl: '<?php /* @escapeNotVerified */ echo $block->getSwitchTreeUrl() ?>',
                 editUrl: '<?php /* @escapeNotVerified */ echo $block->getEditUrl() ?>',
                 currentNodeId: <?php /* @escapeNotVerified */ echo (int)$block->getCategoryId() ?>,

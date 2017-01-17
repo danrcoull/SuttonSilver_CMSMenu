@@ -93,7 +93,7 @@ class Edit extends \SuttonSilver\CMSMenu\Controller\Adminhtml\MenuItems
         if (!$menu || $menuId != $menu->getId() || !$menu->getId()) {
             /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
             $resultRedirect = $this->resultRedirectFactory->create();
-            return $resultRedirect->setPath('cmsmenu_menu/*/*', ['_current' => true, 'id' => null]);
+            return $resultRedirect->setPath('cmsmenu_menu/*/', ['_current' => true, 'id' => null]);
         }
 
         /** @var \Magento\Backend\Model\View\Result\Page $resultPage */

@@ -168,24 +168,42 @@ class Tree extends \Magento\Framework\View\Element\Template
 
             $tree = $this->_menuItemsTree->load(null, $recursionLevel);
 
+
             if ($this->getMenuItem()) {
                 $tree->loadEnsuredNodes($this->getMenuItem(), $tree->getNodeById($rootId));
             }
 
-            $tree->addCollectionData($this->getCategoryCollection());
+            $tree->addCollectionData($this->getMenuItemCollection());
 
             $root = $tree->getNodeById($rootId);
 
             if ($root && $rootId != \SuttonSilver\CMSMenu\Model\MenuItems::TREE_ROOT_ID) {
                 $root->setIsVisible(true);
             } elseif ($root && $root->getId() == \SuttonSilver\CMSMenu\Model\MenuItems::TREE_ROOT_ID) {
-                $root->setTitle(__('Root'));
+                $root->setTitle(__('Main Menu'));
             }
 
             $this->_coreRegistry->register('root', $root);
         }
 
+
         return $root;
+    }
+
+    public function getMenuItemCollection()
+    {
+        $storeId = 0;
+        $collection = $this->getData('menuitem_collection');
+        if ($collection === null) {
+            $collection = $this->_menuItemsFactory->create()->getCollection();
+
+            $collection->addFieldToSelect(
+                '*'
+            );
+
+            $this->setData('menuitem_collection', $collection);
+        }
+        return $collection;
     }
 
     public function getTree($parenNodeCategory = null)
@@ -210,7 +228,7 @@ class Tree extends \Magento\Framework\View\Element\Template
         }
 
         $item = [];
-        $item['text'] = $this->escapeHtml($node->getName());
+        $item['text'] = $this->escapeHtml($node->getTitle());
 
         $rootForStores = in_array($node->getData('suttonsilver_cmsmenu_menuitems_id'), $this->getRootIds());
 
@@ -240,6 +258,7 @@ class Tree extends \Magento\Framework\View\Element\Template
         if ($isParent || $node->getLevel() < 2) {
             $item['expanded'] = true;
         }
+
 
         return $item;
     }

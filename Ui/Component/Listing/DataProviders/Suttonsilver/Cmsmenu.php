@@ -24,6 +24,8 @@ class Cmsmenu extends \Magento\Ui\DataProvider\AbstractDataProvider
      */
     protected $loadedData;
 
+    protected $request;
+
     /**
      * Constructor
      *
@@ -40,13 +42,16 @@ class Cmsmenu extends \Magento\Ui\DataProvider\AbstractDataProvider
         $primaryFieldName,
         $requestFieldName,
         CollectionFactory $blockCollectionFactory,
+        \Magento\Framework\App\RequestInterface $request,
         DataPersistorInterface $dataPersistor,
         array $meta = [],
         array $data = []
     ) {
         $this->collection = $blockCollectionFactory->create();
         $this->dataPersistor = $dataPersistor;
+        $this->request = $request;
         parent::__construct($name, $primaryFieldName, $requestFieldName, $meta, $data);
+        $this->meta = $this->prepareMeta($this->meta);
     }
 
 
@@ -69,5 +74,13 @@ class Cmsmenu extends \Magento\Ui\DataProvider\AbstractDataProvider
         }
 
         return $this->loadedData;
+    }
+
+    public function prepareMeta($meta)
+    {
+        $meta['general']['children']['parent']['arguments']['data']['config']['default'] = (int)$this->request->getParam('parent');
+        $meta['general']['children']['store_id']['arguments']['data']['config']['default'] = (int)$this->request->getParam('store');
+
+        return $meta;
     }
 }

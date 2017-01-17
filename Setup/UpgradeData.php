@@ -8,17 +8,18 @@ class UpgradeData implements \Magento\Framework\Setup\UpgradeDataInterface
         $installer->startSetup();
 
         if (version_compare($context->getVersion(), '0.0.2') < 0) {
+            $rootId = \SuttonSilver\CMSMenu\Model\MenuItems::ROOT_MENU_ITEM_ID;
             $ob = \Magento\Framework\App\ObjectManager::getInstance();
             $menuItems = $ob->get('\SuttonSilver\CMSMenu\Model\MenuItemsFactory')->create();
             $menuItems
-                ->setId(1)
                 ->setStoreId(0)
-                ->setPath(\SuttonSilver\CMSMenu\Model\MenuItems::ROOT_MENU_ITEM_ID)
+                ->setPath($rootId)
                 ->setLevel(0)
-                ->setSortOrder(0)
                 ->setPosition(0)
+                ->setSortOrder(0)
                 ->setTitle('Main Menu')
                 ->setSlug('Main Menu')
+                ->setInitialSetupFlag(true)
                 ->save();
         }
 

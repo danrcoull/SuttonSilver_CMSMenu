@@ -21,9 +21,13 @@ class MenuItems implements \Magento\Framework\Data\OptionSourceInterface
                 'label' => __('-- Please Select --'),
             ]
         ];
+        $groupArray = [
+            'label' => 'Magento Pages',
+            'value' => []
+        ];
 
         foreach ($pages as $page) {
-            $array[] = [
+            $groupArray['value'] = [
                 'value' => $page->getId(),
                 'label' => __($page->getTitle()),
             ];

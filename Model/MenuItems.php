@@ -15,7 +15,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
     const TREE_ROOT_ID = 1;
 
     protected $interfaceAttributes = [
-        'id',
+        'suttonsilver_cmsmenu_menuitems_id',
         self::SLUG,
         self::TITLE,
         self::PARENT,
@@ -44,6 +44,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
     ) {
         $this->_storeCollectionFactory = $storeCollectionFactory;
         $this->_storeManager = $storeManager;
+        $this->_idFieldName = 'suttonsilver_cmsmenu_menuitems_id';
         parent::__construct(
             $context,
             $registry,
@@ -82,7 +83,6 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
             $storeId = $this->_storeManager->getStore($storeId)->getId();
         }
         $this->setData('store_id', $storeId);
-        $this->getResource()->setStoreId($storeId);
         return $this;
     }
 
@@ -187,7 +187,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function getTitle()
     {
-        $this->getData(self::TITLE);
+        return $this->getData(self::TITLE);
     }
 
     public function setTitle($title)
@@ -198,7 +198,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function getPath()
     {
-        $this->getData(self::PATH);
+        return $this->getData(self::PATH);
     }
 
     public function setPath($path)
@@ -215,27 +215,29 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function getCreatedAt()
     {
-        $this->getData(self::CREATION_TIME);
+       return  $this->getData(self::CREATION_TIME);
     }
 
     public function setCreatedAt($creationTime)
     {
         $this->setData(self::CREATION_TIME, $creationTime);
+        return $this;
     }
 
     public function getUpdatedAt()
     {
-        $this->getData(self::UPDATE_TIME);
+        return $this->getData(self::UPDATE_TIME);
     }
 
     public function setUpdatedAt($updateTime)
     {
         $this->setData(self::UPDATE_TIME, $updateTime);
+        return $this;
     }
 
     public function getSortOrder()
     {
-        $this->getData(self::SORT_ORDER);
+        return $this->getData(self::SORT_ORDER);
     }
 
     public function setSortOrder($sortOrder)
@@ -246,7 +248,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function getPosition()
     {
-        $this->getData(self::POSITION);
+       return $this->getData(self::POSITION);
     }
 
     public function setPosition($position)
@@ -257,7 +259,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function getIsActive()
     {
-        $this->getData(self::IS_ACTIVE);
+       return $this->getData(self::IS_ACTIVE);
     }
 
     public function setIsActive($isActive)
@@ -272,5 +274,66 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
         return $this;
     }
 
+    public function move($parentId, $afterItemId)
+    {
+        /**
+         * Validate new parent category id. (category model is used for backward
+         * compatibility in event params)
+         */
+        try {
+            $parent = $this->getCollection()
+                ->addFieldToFilter('suttonsilver_cmsmenu_menuitems_id', $parentId)
+                ->getFirstItem();
+            if(!$parent->getId()) {
+                throw new NoSuchEntityException('doesnt exist');
+            }
+        } catch (NoSuchEntityException $e) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __(
+                    'Sorry, but we can\'t find the new parent menu item you selected.'
+                ),
+                $e
+            );
+        }
+
+        if (!$this->getId()) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Sorry, but we can\'t find the new menu item you selected.')
+            );
+        } elseif ($parent->getId() == $this->getId()) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __(
+                    'We can\'t move the menu item because the parent category name matches the child category name.'
+                )
+            );
+        }
+
+
+        $oldParentId = $this->getParentId();
+
+        $eventParams = [
+            $this->_eventObject => $this,
+            'parent' => $parent,
+            'category_id' => $this->getId(),
+            'prev_parent_id' => $oldParentId,
+            'parent_id' => $parentId,
+        ];
+
+        $this->_getResource()->beginTransaction();
+        try {
+            $this->_eventManager->dispatch($this->_eventPrefix . '_move_before', $eventParams);
+            $this->getResource()->changeParent($this, $parent, $afterItemId);
+            $this->_eventManager->dispatch($this->_eventPrefix . '_move_after', $eventParams);
+            $this->_getResource()->commit();
+
+        } catch (\Exception $e) {
+            $this->_getResource()->rollBack();
+            throw $e;
+        }
+        $this->_eventManager->dispatch('menu_item_move', $eventParams);
+
+
+        return $this;
+    }
 
 }

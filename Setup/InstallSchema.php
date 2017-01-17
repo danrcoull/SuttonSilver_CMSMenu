@@ -16,7 +16,7 @@ class InstallSchema implements \Magento\Framework\Setup\InstallSchemaInterface
             'suttonsilver_cmsmenu_menuitems_id',
             \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
             null,
-            ['identity' => true, 'nullable' => false, 'primary' => true, 'unsigned' => true],
+            ['identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true],
             'Menu Item Id'
         )->addColumn(
             'store_id',

@@ -30,15 +30,32 @@ class NewAction extends \SuttonSilver\CMSMenu\Controller\Adminhtml\MenuItems
         parent::__construct($context);
     }
 
-    /**
-     * Forward to edit
-     *
-     * @return \Magento\Backend\Model\View\Result\Forward
-     */
     public function execute()
     {
-        /** @var \Magento\Backend\Model\View\Result\Forward $resultForward */
-        $resultForward = $this->resultForwardFactory->create();
-        return $resultForward->forward('edit');
+        $parentId = (int)$this->getRequest()->getParam('parent');
+        $menu = $this->_initMenuItem(true);
+        if (!$menu || !$parentId || $menu->getId()) {
+            /** @var \Magento\Backend\Model\View\Result\Redirect $resultRedirect */
+            $resultRedirect = $this->resultRedirectFactory->create();
+            return $resultRedirect->setPath('cmsmenu_menu/*/', ['_current' => true, 'id' => null]);
+        }
+
+
+        $menuItemData = $this->_getSession()->getMenuItemData(true);
+        if (is_array($menuItemData)) {
+            $menu->addData($menuItemData);
+        }
+
+
+
+        $resultPageFactory = $this->_objectManager->get('Magento\Framework\View\Result\PageFactory');
+        /** @var \Magento\Backend\Model\View\Result\Page $resultPage */
+        $resultPage = $resultPageFactory->create();
+
+        if ($this->getRequest()->getQuery('isAjax')) {
+            return $this->ajaxRequestResponse($menu, $resultPage);
+        }
+
+        return $resultPage;
     }
 }
