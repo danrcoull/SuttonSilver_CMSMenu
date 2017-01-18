@@ -1,80 +1,91 @@
 <?php
 namespace SuttonSilver\CMSMenu\Plugin;
-
+use Magento\Framework\Data\Tree\NodeFactory;
+use Magento\Framework\Data\Collection;
+use Magento\Framework\Data\Tree\Node;
 class Topmenu
 {
-    function buildTree( $ar, $pid = null ) {
-        $op = array();
-        foreach( $ar as $item ) {
-            if( $item['parent'] == $pid ) {
-                $op[$item['suttonsilver_cmsmenu_menuitems_id']] = array(
-                    'title' => $item['title'],
-                    'slug'  => $item['slug'],
-                    'parent' => $item['parent']
-                );
-                // using recursion
-                $children =  $this->buildTree( $ar, $item['suttonsilver_cmsmenu_menuitems_id'] );
-                if( $children ) {
-                    $op[$item['suttonsilver_cmsmenu_menuitems_id']]['children'] = $children;
-                }
-            }
-        }
-        return $op;
+
+    private $collectionFactory;
+    private $menuItem;
+    private $storeManager;
+    protected $nodeFactory;
+
+    public function __construct(
+        \SuttonSilver\CMSMenu\Model\ResourceModel\MenuItems\CollectionFactory $menuItemsCollectionFactory,
+        \SuttonSilver\CMSMenu\Model\MenuItems $menuItems,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        NodeFactory $nodeFactory
+    ) {
+        $this->collectionFactory = $menuItemsCollectionFactory;
+        $this->menuItem = $menuItems;
+        $this->storeManager = $storeManager;
+        $this->nodeFactory = $nodeFactory;
     }
 
-    public function printTree($tree, $level=0) {
-        $output = '';
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $storeManager = $objectManager->get('Magento\Store\Model\StoreManagerInterface');
-        $base = $storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_LINK);
-        if(!is_null($tree) && count($tree) > 0) {
-            $liClass = isset($tree['children']) ? 'nav-1 first last level-top parent ' : 'nav-1 level-top ui-menu-item ';
-            $title = $tree['title'];
-            $slug = $tree['slug'];
-            $output .= "<li class='level$level $liClass'>"."<a href='$base$slug' title='$title'>".$tree['title']."</a>";
+    public function beforeGetHtml(
+        \Magento\Theme\Block\Html\Topmenu $subject,
+        $outermostClass = '',
+        $childrenWrapClass = '',
+        $limit = 0
+    ) {
 
-            if (isset($tree['children']) ) {
-                $output .= "<ul class='level$level submenu'>";
-                foreach ($tree['children'] as $child) {
-                    $output .= $this->printTree($child, $level+1);
-                }
-                $output .= "</ul>";
+        $rootId = 1;
+        $storeId = $this->storeManager->getStore()->getId();
+
+        $collection = $this->getMenuItemTree($storeId, $rootId, 1);
+        $mapping = [$rootId => $subject->getMenu()];
+
+        foreach ($collection as $menuItem) {
+
+            if (!isset($mapping[$menuItem->getParentId()])) {
+                continue;
             }
-            $output .= "</li>";
+            $parentMenuItem = $mapping[$menuItem->getParentId()];
+
+            $menuItemNode = new Node(
+                $this->getMenuItemAsArray($menuItem, $parentMenuItem),
+                'id',
+                $parentMenuItem->getTree(),
+                $parentMenuItem
+            );
+
+            $parentMenuItem->addChild($menuItemNode);
+
+            $mapping[$menuItem->getId()] = $menuItemNode; //add node in stack
         }
-        return $output;
     }
 
 
-
-    public function afterGetHtml(\Magento\Theme\Block\Html\Topmenu $topmenu, $html)
+    protected function getMenuItemTree($storeId, $rootId, $before)
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        //create the collection and add store filter
+        /** @var \Magento\Catalog\Model\ResourceModel\Category\Collection $collection */
+        $collection = $this->collectionFactory->create();
+        $collection->addFieldToSelect('*');
+        $collection->addFieldToFilter('path', ['like' => $rootId.'/%']); //load only from store root
+        $collection->addFieldToFilter('is_active', 1);
+        //$collection->addFieldToFilter('before_categories', $before);
+        $collection->addOrder('level', 'ASC');
+        $collection->addOrder('position', 'ASC');
+        $collection->addOrder('parent_id', 'ASC');
+        return $collection;
+    }
+
+    private function getMenuItemAsArray($menuItem, $currentMenuItem)
+    {
+        return [
+            'name' => $menuItem->getTitle(),
+            'id' => 'menu-node-' . $menuItem->getId(),
+            'url' => $menuItem->getSlug(),
+            'has_active' => in_array((string)$menuItem->getId(), explode('/', $menuItem->getPath()), true),
+            'is_active' => false
+        ];
+    }
 
 
-        $pages = $objectManager->get('\SuttonSilver\CMSMenu\Model\ResourceModel\MenuItems\CollectionFactory')->create();
-        $pages->addFieldToFilter('is_active', array('eq'=>1));
-        $pages->setOrder('sort_order','ASC');
-        $tree = $this->buildTree($pages->getData());
+    public function afterGetHtml(\Magento\Theme\Block\Html\Topmenu $subject, $html)
+    {
 
-        $before = "<li class='level0 nav-1 level-top ui-menu-item'><a href='/' title='Home'>Home</a></li>";
-        $after = '';
-        foreach($tree as $key => $node)
-        {
-            $pages = $objectManager->get('\SuttonSilver\CMSMenu\Model\MenuItems');
-            $_pages = $pages->load($key);
-            if($_pages->getData('before_categories')):
-               $before .=$this->printTree($node);
-            else :
-                $after .=$this->printTree($node);
-            endif;
-
-        }
-
-        $htmlNew = $before.$html.$after;
-        //empty arrays php 5.6+
-
-        return $htmlNew;
+        return $html;
     }
 }
