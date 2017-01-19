@@ -33,6 +33,8 @@ class MenuItems implements \Magento\Framework\Data\OptionSourceInterface
             ];
         }
 
+        $array[] = $groupArray;
+
 
 
         return $array;
