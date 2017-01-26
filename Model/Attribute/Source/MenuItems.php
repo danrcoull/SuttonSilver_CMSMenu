@@ -4,6 +4,15 @@ namespace SuttonSilver\CMSMenu\Model\Attribute\Source;
 class MenuItems implements \Magento\Framework\Data\OptionSourceInterface
 {
 
+    protected  $moduleManager;
+
+    public function __construct(
+        Context $context,
+        \Magento\Framework\Module\Manager $moduleManager
+    )
+    {
+        $this->moduleManager = $moduleManager;
+    }
 
     /**
      * {@inheritdoc}
@@ -36,6 +45,12 @@ class MenuItems implements \Magento\Framework\Data\OptionSourceInterface
         $array[] = $groupArray;
 
 
+        if($this->moduleManager->isEnabled('FishPig_WordPress')) {
+            $groupArray = [
+                'label' => 'WordPress Pages',
+                'value' => []
+            ];
+        }
 
         return $array;
     }
