@@ -64,7 +64,7 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
         array_push($this->options,$groupArray);
 
         $this->getWordpress();
-
+        $this->getArchives();
         return $this->options;
     }
 
@@ -102,5 +102,28 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
         }
 
         return $this;
+    }
+
+    public function getArchives() {
+        if($this->moduleManager->isEnabled('FishPig_WordPress')) {
+
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $wordpress = $objectManager->create('\FishPig\WordPress\Model\App');
+            $postTypes = $wordpress->getPostTypes();
+            $groupArray = [
+                'label' => 'WordPress Archives (Lists)',
+                'value' => []
+            ];
+            foreach($postTypes as $post)
+            {
+                $postArray = [
+                    'value' => $post->getUrl(),
+                    'label' => $post->getName(),
+                ];
+
+                array_push($groupArray['value'],$postArray);
+            }
+            array_push($this->options,$groupArray);
+        }
     }
 }
