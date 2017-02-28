@@ -144,7 +144,7 @@ class MenuItems extends AbstractModel implements \SuttonSilver\CMSMenu\Model\Men
 
     public function beforeDelete()
     {
-        if ($this->getResource()->isForbiddenToDelete($this->getId())) {
+        if ($this->getId() == 1) {
             throw new \Magento\Framework\Exception\LocalizedException(__('Can\'t delete root category.'));
         }
         return parent::beforeDelete();

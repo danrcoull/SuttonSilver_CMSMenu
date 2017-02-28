@@ -65,6 +65,7 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
 
         $this->getWordpress();
         $this->getArchives();
+
         return $this->options;
     }
 
@@ -125,5 +126,6 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
             }
             array_push($this->options,$groupArray);
         }
+        return $this;
     }
 }

@@ -32,20 +32,10 @@ class GenericButton
         $this->blockRepository = $blockRepository;
     }
 
-    /**
-     * Return CMS block ID
-     *
-     * @return int|null
-     */
-    public function getBlockId()
+    public function getId()
     {
-        try {
-            return $this->blockRepository->getById(
-                $this->context->getRequest()->getParam('block_id')
-            )->getId();
-        } catch (NoSuchEntityException $e) {
-        }
-        return null;
+        $id = $this->context->getRequest()->getParam('id');
+        return $id;
     }
 
     /**
