@@ -24,7 +24,7 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
     public function toOptionArray()
     {
 
-        array_push($this->options,['value'=>'','label'=>'-- Please Select--']);
+        array_push($this->options,['value'=>'/','label'=>'-- Please Select--']);
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $pages = $objectManager->get('\Magento\Cms\Model\ResourceModel\Page\CollectionFactory')->create();
