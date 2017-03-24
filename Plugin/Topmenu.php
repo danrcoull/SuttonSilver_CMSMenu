@@ -86,6 +86,9 @@ class Topmenu
     public function afterGetHtml(\Magento\Theme\Block\Html\Topmenu $subject, $html)
     {
 
-        return $html;
+        $search = "<li class='level0 search-button'><a href='#' class='search-link'>
+                    <i class=\"fa fa-search\" aria-hidden=\"true\"></i>
+                   </a></li>";
+        return $html.$search;
     }
 }
