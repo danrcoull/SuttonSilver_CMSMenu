@@ -135,7 +135,7 @@ class Tree extends \Magento\Framework\View\Element\Template
      */
     public function getMoveUrl()
     {
-        return $this->getUrl('cmsmenu_menu/*/move', ['store' => $this->getRequest()->getParam('store')]);
+        return $this->getUrl('cmsmenu_menu/*/move', ['store' => $this->getRequest()->getParam('store'),'isAjax' => 'true']);
     }
     public function getMenuItem(){
         return $this->_coreRegistry->registry('menuitem');
