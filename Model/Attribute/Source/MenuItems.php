@@ -7,7 +7,6 @@ class MenuItems implements \Magento\Framework\Data\OptionSourceInterface
     protected  $moduleManager;
 
     public function __construct(
-        Context $context,
         \Magento\Framework\Module\Manager $moduleManager
     )
     {
