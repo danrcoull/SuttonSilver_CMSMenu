@@ -5,6 +5,7 @@
     <head>
         <css src="jquery/fileUploader/css/jquery.fileupload-ui.css"/>
         <link src="Magento_Catalog::js/edit-tree.js"/>
+        <link rel="stylesheet" type="text/css" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css" src_type="url" />
     </head>
     <update handle="editor"/>
     <body>

@@ -65,7 +65,9 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
 
         $this->getWordpress();
         $this->getArchives();
-
+        $this->getTaxonomies();
+       // var_dump($this->options[3]);
+       // die(var_dump($this->options[13]));
         return $this->options;
     }
 
@@ -126,6 +128,38 @@ class Slugs implements \Magento\Framework\Data\OptionSourceInterface
             }
             array_push($this->options,$groupArray);
         }
+        return $this;
+    }
+
+    public function getTaxonomies()
+    {
+        if($this->moduleManager->isEnabled('FishPig_WordPress')) {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $wordpress = $objectManager->create('\FishPig\WordPress\Model\App');
+            $taxonomies = $wordpress->getTaxonomies();
+            foreach ($taxonomies as $taxonomy) {
+                $groupArray = [
+                    'label' => $taxonomy->getLabel().' Terms',
+                    'value' => []
+                ];
+
+                $terms = $objectManager->get('\FishPig\WordPress\Model\ResourceModel\Term\CollectionFactory')->create();
+                $terms = $terms->addTaxonomyFilter($taxonomy->getName());
+
+                if($terms->count() > 0) {
+                    foreach ($terms as $term) {
+                        $termArray = [
+                            'value' => $term->getUrl(),
+                            'label' => $term->getName(),
+                        ];
+
+                        array_push($groupArray['value'], $termArray);
+                    }
+                    array_push($this->options, $groupArray);
+                }
+            }
+        }
+
         return $this;
     }
 }

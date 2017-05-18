@@ -151,8 +151,10 @@
             <argument name="data" xsi:type="array">
                 <item name="options" xsi:type="object">SuttonSilver\CMSMenu\Model\Attribute\Source\Slugs</item>
                 <item name="config" xsi:type="array">
+                    <!--<item name="component" xsi:type="string">SuttonSilver_CMSMenu/js/form/element/select-search</item>-->
+                    <item name="elementTmpl" xsi:type="string">SuttonSilver_CMSMenu/form/element/select2</item>
                     <item name="sortOrder" xsi:type="number">30</item>
-                    <item name="dataType" xsi:type="string">string</item>
+                    <item name="dataType" xsi:type="string">text</item>
                     <item name="formElement" xsi:type="string">select</item>
                     <item name="source" xsi:type="string">cmsmenu</item>
                     <item name="dataScope" xsi:type="string">slug</item>
